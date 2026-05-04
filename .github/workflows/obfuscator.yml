@@ -1,4 +1,4 @@
-name: Build and Commit Worker
+name: Build and Commit
 
 on:
   push:
@@ -9,14 +9,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-commit:
+  build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -27,19 +25,17 @@ jobs:
         run: npm install
 
       - name: Build _worker.js
-        # 这里改为你的正常构建命令（例如使用 esbuild 或 webpack 合并代码）
-        # 如果你只是简单的单文件，可以用 cp ./src/index.js ./_worker.js
-        run: npm run build 
+        # 使用不带混淆的打包命令
+        run: npm run build-pages
 
       - name: Commit changes
         run: |
           git config --local user.email "github-actions[bot]@://github.com"
           git config --local user.name "github-actions[bot]"
           git add _worker.js
-          # 检查是否有内容变化，避免空提交报错
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Build: auto-generate _worker.js from src"
+            git commit -m "Build: generate non-obfuscated _worker.js"
             git push origin main
           fi
