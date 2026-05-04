@@ -3,10 +3,6 @@ name: Obfuscate and Commit
 on:
   push:
     branches: [main]
-    paths:
-      - 'src/**'
-      - 'package.json'
-      - 'package-lock.json'
   workflow_dispatch:
 
 jobs:
@@ -30,14 +26,7 @@ jobs:
       - name: Obfuscate code
         run: npm run obfuscate
 
-      - name: Commit changes
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add _worker.js
-          PREV_MSG=$(git log -1 --pretty=format:"%s" HEAD)
-          git commit -m "Obfuscate _worker.js ($PREV_MSG)" || echo "No changes to commit"
-
+      
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
