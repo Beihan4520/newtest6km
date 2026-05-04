@@ -1,12 +1,15 @@
-name: Obfuscate and Commit
+name: Build and Commit Worker
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'package.json'
   workflow_dispatch:
 
 jobs:
-  obfuscate-and-deploy:
+  build-and-commit:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -23,12 +26,20 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Obfuscate code
-        run: npm run obfuscate
+      - name: Build _worker.js
+        # 这里改为你的正常构建命令（例如使用 esbuild 或 webpack 合并代码）
+        # 如果你只是简单的单文件，可以用 cp ./src/index.js ./_worker.js
+        run: npm run build 
 
-      
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
+      - name: Commit changes
+        run: |
+          git config --local user.email "github-actions[bot]@://github.com"
+          git config --local user.name "github-actions[bot]"
+          git add _worker.js
+          # 检查是否有内容变化，避免空提交报错
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Build: auto-generate _worker.js from src"
+            git push origin main
+          fi
